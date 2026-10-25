@@ -1,3 +1,7 @@
+# Note
+
+This game was originally made during the Spring 2026 semester at William & Mary for the class CSCI 437: Game Design. The creators of this project are Alex Anderson, Aglae Hunter, Patrick Breslin, and Shraddha Anup. This project was made on William and Mary's gitlab server, so this copy is to allow public viewing. No changes have been made to the project besides this note.
+
 # Building Iron Circuit
 
 To build the game from source on a Debian/Ubuntu-based machine (or WSL):
