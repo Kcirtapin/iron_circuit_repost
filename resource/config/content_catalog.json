@@ -1,0 +1,178 @@
+{
+  "weapons": [
+    {
+      "id": "charge_beam",
+      "damage": { "min": 5, "max": 25 },
+      "range": "long",
+      "cooldown": 2.0,
+      "mechanics": ["charge", "interrupt_on_damage"]
+    },
+    {
+      "id": "chain_lightning",
+      "damage": 8,
+      "range": "medium",
+      "cooldown": 1.5,
+      "mechanics": ["bounce"],
+      "params": {
+        "bounce_count": 3,
+        "bounce_radius": 5,
+        "damage_falloff": [1.0, 0.7, 0.5]
+      }
+    },
+    {
+      "id": "shotgun",
+      "damage": 4,
+      "pellets": 6,
+      "range": "short",
+      "cooldown": 1.0,
+      "mechanics": ["spread", "knockback"],
+      "params": {
+        "spread_angle": 30
+      }
+    },
+    {
+      "id": "railgun",
+      "damage": 20,
+      "range": "infinite",
+      "cooldown": 3.0,
+      "mechanics": ["pierce", "ignore_armor"]
+    },
+    {
+      "id": "turret_deploy",
+      "cooldown": 10.0,
+      "duration": 15.0,
+      "mechanics": ["spawn_entity"],
+      "params": {
+        "turret_damage": 3,
+        "turret_fire_rate": 0.5
+      }
+    }
+  ],
+  "items": [
+    {
+      "id": "overclock",
+      "duration": 5.0,
+      "effects": {
+        "attack_speed_mult": 1.5,
+        "self_damage_per_sec": 1
+      }
+    },
+    {
+      "id": "reactive_armor",
+      "effects": {
+        "on_hit_reflect_pct": 0.3,
+        "reflect_cooldown": 1.0
+      }
+    },
+    {
+      "id": "time_slow",
+      "duration": 4.0,
+      "effects": {
+        "enemy_speed_mult": 0.5
+      }
+    },
+    {
+      "id": "lifesteal",
+      "effects": {
+        "heal_pct_on_damage": 0.2
+      }
+    },
+    {
+      "id": "blink",
+      "cooldown": 6.0,
+      "mechanics": ["teleport"],
+      "params": {
+        "range": 10
+      }
+    }
+  ],
+  "enemies": [
+    {
+      "id": "kamikaze",
+      "ai": "melee",
+      "hp": 10,
+      "speed": "fast",
+      "mechanics": ["explode_on_death"],
+      "params": {
+        "explosion_damage": 15
+      }
+    },
+    {
+      "id": "shield_drone",
+      "ai": "ranged",
+      "hp": 30,
+      "behavior": "support",
+      "mechanics": ["shield_allies"],
+      "params": {
+        "shield_radius": 5,
+        "shield_amount": 50
+      }
+    },
+    {
+      "id": "sniper",
+      "ai": "ranged",
+      "hp": 15,
+      "damage": 15,
+      "attack_delay": 2.0,
+      "mechanics": ["line_of_sight", "windup"]
+    },
+    {
+      "id": "assassin",
+      "ai": "melee",
+      "hp": 25,
+      "mechanics": ["teleport", "bonus_first_hit"],
+      "params": {
+        "teleport_interval": 3.0,
+        "first_hit_multiplier": 2.0
+      }
+    },
+    {
+      "id": "tank",
+      "ai": "melee",
+      "hp": 100,
+      "speed": "slow",
+      "mechanics": ["damage_reduction", "knockback_immunity"],
+      "params": {
+        "damage_reduction_pct": 0.5
+      }
+    },
+    {
+      "id": "summoner",
+      "ai": "ranged",
+      "hp": 40,
+      "mechanics": ["spawn_minions"],
+      "params": {
+        "spawn_interval": 5.0,
+        "max_minions": 3
+      }
+    },
+    {
+      "id": "disruptor",
+      "ai": "ranged",
+      "hp": 35,
+      "mechanics": ["disable_on_hit"],
+      "params": {
+        "disable_duration": 2.0
+      }
+    }
+  ],
+  "modifiers": [
+    {
+      "id": "fast",
+      "speed_mult": 1.5
+    },
+    {
+      "id": "armored",
+      "damage_reduction_pct": 0.3
+    },
+    {
+      "id": "explosive",
+      "on_death_explosion": true,
+      "explosion_damage": 10
+    },
+    {
+      "id": "regenerating",
+      "hp_regen_per_sec": 2
+    }
+  ]
+}

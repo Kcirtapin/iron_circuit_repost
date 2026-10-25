@@ -1,0 +1,445 @@
+classDiagram
+
+%% ══════════════════════════════════════════════════
+%% CONTROLLER LAYER
+%% ══════════════════════════════════════════════════
+
+class GameController {
+    -SDL_Window* window
+    -SDL_Renderer* sdlRenderer
+    -shared_ptr~EventBus~ eventBus
+    -unique_ptr~GameModel~ model
+    -unique_ptr~HumanView~ humanView
+    -unique_ptr~UIView~ uiView
+    -unique_ptr~HumanController~ humanController
+    -unique_ptr~Renderer~ renderer
+    +run()
+    -pollEvents()
+    -update()
+    -render()
+    -collectAndSubmitActions()
+}
+
+class HumanController {
+    -PlayerRobot* robot
+    -GameModel* model
+    -HumanView* view
+    +isReady() bool
+    +produceAndSubmitAction()
+    +clearAction()
+    +syncCardsToView()
+}
+
+class AIBehavior {
+    <<abstract>>
+    #EnemyRobot* robot
+    #GameModel* model
+    +tick() Action*
+    #greedyPathfind() Action
+    #checkFriendlyFire(Direction) bool
+    #telegraph(Action)
+    #submit(Action)
+    +melee(EnemyRobot*, GameModel*)$ AIBehavior
+    +ranged(EnemyRobot*, GameModel*, int)$ AIBehavior
+    +boss(EnemyRobot*, GameModel*)$ AIBehavior
+    +custom(EnemyRobot*, GameModel*, fn)$ AIBehavior
+}
+
+%% ══════════════════════════════════════════════════
+%% VIEW LAYER
+%% ══════════════════════════════════════════════════
+
+class HumanView {
+    -vector~ProgramCard~ availableCards
+    -optional~ProgramCard~ selectedCard
+    -optional~Direction~ pendingDirection
+    -bool confirmed
+    +handleSDLEvent(SDL_Event)
+    +setAvailableCards(vector~ProgramCard~)
+    +getSelectedCard() optional~ProgramCard~
+    +getPendingDirection() optional~Direction~
+    +hasConfirmed() bool
+    +clearSelection()
+    +submitDrawRequests(DrawQueue*)
+}
+
+class UIView {
+    -GameModel* model
+    -UIState state
+    -optional~int~ upgradeChoice
+    -optional~int~ loadoutSlotChoice
+    +setState(UIState)
+    +handleSDLEvent(SDL_Event)
+    +getUpgradeChoice() optional~int~
+    +clearChoices()
+    +submitDrawRequests(DrawQueue*)
+}
+
+%% ══════════════════════════════════════════════════
+%% MODEL LAYER
+%% ══════════════════════════════════════════════════
+
+class GameModel {
+    -shared_ptr~EventBus~ eventBus
+    -unique_ptr~Level~ level
+    -unique_ptr~PlayerRobot~ player
+    -unique_ptr~RuleManager~ ruleManager
+    -optional~PlayerAction~ pendingPlayerAction
+    -int turnNumber
+    -GameState state
+    +loadLevel(int)
+    +submitPlayerAction(PlayerAction)
+    +submitEnemyAction(int, Action)
+    +allActionsReady() bool
+    +executeTurn()
+    +applyUpgrade(unique_ptr~Component~, int)
+    +getEventBus() shared_ptr~EventBus~
+}
+
+class RuleManager {
+    -GameModel* model
+    -weak_ptr~EventBus~ eventBus
+    +onEvent(GameEvent)
+    +resolveSimultaneousActions()
+    +activateHazards()
+    +checkWinCondition() bool
+    +checkLossCondition() bool
+    -resolvePlayerAttack(PlayerAction, PlayerRobot*, Level*)
+    -resolveEnemyAttack(Action, EnemyRobot*, PlayerRobot*, Level*)
+}
+
+class Level {
+    -int width
+    -int height
+    -vector~Tile~ grid
+    -vector~unique_ptr~EnemyRobot~~ enemies
+    +isInBounds(int, int) bool
+    +getTile(int, int) Tile
+    +placeRobot(Robot*, Vector2i)
+    +removeRobot(Robot*)
+    +moveRobot(Robot*, Vector2i)
+    +addEnemy(unique_ptr~EnemyRobot~)
+    +getEnemies() vector~EnemyRobot*~
+    +updateHazards()
+    +submitDrawRequests(DrawQueue*)
+}
+
+class Tile {
+    +TileType type
+    +Vector2i pos
+    +Robot* occupant
+    +isWalkable() bool
+}
+
+class Robot {
+    <<abstract>>
+    #int id
+    #Vector2i pos
+    #Direction facing
+    #int hp
+    #int maxHp
+    #int defense
+    #int attackPower
+    #int heat
+    #int maxHeat
+    #int heatTolerance
+    #RobotBody body
+    #weak_ptr~EventBus~ eventBus
+    #vector~unique_ptr~Condition~~ conditions
+    +takeDamage(int)
+    +heal(int)
+    +addHeat(int)
+    +coolHeat(int)
+    +addCondition(unique_ptr~Condition~)
+    +tickConditions()
+    +submitDrawRequests(DrawQueue*)* 
+    #publish(GameEvent)
+}
+
+class PlayerRobot {
+    -array~unique_ptr~Component~, 2~ inventory
+    +storeInInventory(unique_ptr~Component~) bool
+    +dropFromInventory(int) unique_ptr~Component~
+    +getAvailablePrograms() vector~ProgramCard~
+    +submitDrawRequests(DrawQueue*)
+}
+
+class EnemyRobot {
+    -unique_ptr~AIBehavior~ behavior
+    -Action telegraphedAction
+    -bool invulnerable
+    +setBehavior(unique_ptr~AIBehavior~)
+    +takeTurn()
+    +getTelegraphedAction() Action
+    +setInvulnerable(bool)
+    +submitDrawRequests(DrawQueue*)
+}
+
+class RobotBody {
+    -array~unique_ptr~Component~, 4~ slots
+    -array~bool, 4~ disabled
+    +equipComponent(unique_ptr~Component~, int) bool
+    +unequipComponent(int) unique_ptr~Component~
+    +getComponent(int) Component*
+    +isSlotDisabled(int) bool
+    +setSlotDisabled(int, bool)
+    +getAvailablePrograms() vector~ProgramCard~
+    +getActiveConditions() vector~Condition*~
+    +getActiveReactions() vector~EventReaction*~
+}
+
+class ProgramCard {
+    +string name
+    +string description
+    +MoveType moveType
+    +vector~Direction~ validDirections
+    +int range
+}
+
+class Action {
+    +MoveType moveType
+    +Direction direction
+    +int targetX
+    +int targetY
+}
+
+class PlayerAction {
+    +ProgramCard card
+    +Direction direction
+    +bool valid
+}
+
+%% ══════════════════════════════════════════════════
+%% COMPONENT LAYER
+%% ══════════════════════════════════════════════════
+
+class Component {
+    <<interface>>
+    +getName() string*
+    +getDescription() string*
+    +getProgramCard() ProgramCard*
+    +getConditions() vector~Condition*~*
+    +getReactions() vector~EventReaction*~*
+    +applyTo(Robot*)*
+    +removeFrom(Robot*)*
+}
+
+class Weapon {
+    -string name
+    -WeaponType weaponType
+    -int damage
+    -int range
+    -ProgramCard card
+    -vector~unique_ptr~Condition~~ conditions
+    -vector~unique_ptr~EventReaction~~ reactions
+    +getDamage() int
+    +getWeaponType() WeaponType
+    +getAttackTiles(Robot*, Level*) vector~Vector2i~
+    +applyTo(Robot*)
+    +removeFrom(Robot*)
+}
+
+class StatUpgrade {
+    -string name
+    -StatType statType
+    -int value
+    -ProgramCard card
+    -vector~unique_ptr~Condition~~ conditions
+    -vector~unique_ptr~EventReaction~~ reactions
+    +getStatType() StatType
+    +getValue() int
+    +applyTo(Robot*)
+    +removeFrom(Robot*)
+}
+
+class Condition {
+    <<abstract>>
+    +getName() string*
+    +getConditionType() ConditionType*
+    +isActive() bool*
+    +onApply(Robot*)*
+    +onRemove(Robot*)*
+    +onTick(Robot*)*
+    +activate(Robot*)*
+    +onEvent(GameEvent)*
+}
+
+class PassiveCondition {
+    #ConditionType type
+    #string name
+    #int duration
+    #int turnsRemaining
+    +onTick(Robot*)
+    +onEvent(GameEvent)
+    +activate(Robot*)
+    #onActivate(Robot*)* 
+}
+
+class ActiveCondition {
+    #ConditionType type
+    #string name
+    #int cooldown
+    #int cooldownRemaining
+    +isReady() bool
+    +activate(Robot*)
+    +onTick(Robot*)
+    #onActivate(Robot*)*
+}
+
+class BurningCondition {
+    -int damagePerTurn
+    #onActivate(Robot*)
+}
+
+class ShieldedCondition {
+    -int defenseBonus
+    +onApply(Robot*)
+    +onRemove(Robot*)
+}
+
+class CooledCondition {
+    -int coolPerTurn
+    #onActivate(Robot*)
+}
+
+class OverclockedCondition {
+    -int attackBonus
+    -int heatCost
+    #onActivate(Robot*)
+}
+
+class JammedCondition {
+    #onActivate(Robot*)
+}
+
+%% ══════════════════════════════════════════════════
+%% EVENT LAYER
+%% ══════════════════════════════════════════════════
+
+class IEventListener {
+    <<interface>>
+    +onEvent(GameEvent)*
+}
+
+class EventBus {
+    -array~vector~IEventListener*~, N~ listeners
+    +subscribe(EventType, IEventListener*)
+    +unsubscribe(EventType, IEventListener*)
+    +publish(GameEvent)
+    +create()$ shared_ptr~EventBus~
+}
+
+class EventReaction {
+    -EventType watchFor
+    -GameEvent reaction
+    -function~bool, GameEvent~ predicate
+    -weak_ptr~EventBus~ bus
+    -bool enabled
+    +onEvent(GameEvent)
+    +setEnabled(bool)
+}
+
+class GameEvent {
+    +EventType type
+    +Robot* source
+    +Robot* target
+    +int intPayload
+    +string stringPayload
+}
+
+%% ══════════════════════════════════════════════════
+%% RENDER LAYER
+%% ══════════════════════════════════════════════════
+
+class Renderer {
+    -SDL_Renderer* sdlRenderer
+    -DrawQueue drawQueue
+    +getDrawQueue() DrawQueue*
+    +clear()
+    +renderAll()
+    +present()
+}
+
+class DrawQueue {
+    -vector~DrawRequest~ requests
+    +push(DrawRequest)
+    +getSorted() vector~DrawRequest~
+    +clear()
+}
+
+class DrawRequest {
+    +DrawLayer layer
+    +SDL_Texture* texture
+    +SDL_Rect src
+    +SDL_Rect dst
+    +int zOrder
+}
+
+%% ══════════════════════════════════════════════════
+%% RELATIONSHIPS
+%% ══════════════════════════════════════════════════
+
+%% Controller owns
+GameController *-- GameModel
+GameController *-- HumanController
+GameController *-- HumanView
+GameController *-- UIView
+GameController *-- Renderer
+
+%% Controller uses
+HumanController --> HumanView : reads input from
+HumanController --> GameModel : submits actions to
+HumanController --> PlayerRobot : owns ref to
+
+%% Model owns
+GameModel *-- Level
+GameModel *-- PlayerRobot
+GameModel *-- RuleManager
+
+%% Model uses
+RuleManager ..|> IEventListener
+RuleManager --> GameModel
+RuleManager --> Level
+
+%% Level owns
+Level *-- EnemyRobot
+Level o-- Tile
+
+%% Robot hierarchy
+Robot <|-- PlayerRobot
+Robot <|-- EnemyRobot
+Robot *-- RobotBody
+Robot o-- Condition
+
+%% EnemyRobot behavior (strategy pattern)
+EnemyRobot *-- AIBehavior
+AIBehavior --> EnemyRobot
+AIBehavior --> GameModel
+
+%% Body / Component
+RobotBody *-- Component
+Component <|.. Weapon
+Component <|.. StatUpgrade
+
+%% Condition hierarchy
+Condition ..|> IEventListener
+Condition <|-- PassiveCondition
+Condition <|-- ActiveCondition
+PassiveCondition <|-- BurningCondition
+PassiveCondition <|-- ShieldedCondition
+PassiveCondition <|-- CooledCondition
+ActiveCondition <|-- OverclockedCondition
+ActiveCondition <|-- JammedCondition
+
+%% Components hold conditions and reactions
+Component o-- Condition
+Component o-- EventReaction
+
+%% Event system
+EventReaction ..|> IEventListener
+EventReaction --> EventBus : publishes to
+EventBus --> IEventListener : notifies
+
+%% Render
+Renderer *-- DrawQueue
+DrawQueue o-- DrawRequest

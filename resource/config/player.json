@@ -1,0 +1,37 @@
+{
+  "max_hp": 12,
+  "attack_power": 2,
+  "defense": 0,
+  "max_heat": 10,
+  "start": { "x": 1, "y": 3 },
+  "cards": [
+    {
+      "name": "Punch",
+      "description": "Attack adjacent",
+      "move_type": "attack",
+      "damage": 3,
+      "range": 1
+    },
+    {
+      "name": "Shove",
+      "description": "Push target one tile",
+      "move_type": "special",
+      "damage": 1,
+      "range": 1
+    },
+    {
+      "name": "Move",
+      "description": "Step one tile",
+      "move_type": "move",
+      "damage": 0,
+      "range": 1
+    },
+    {
+      "name": "Block",
+      "description": "Brace for impact",
+      "move_type": "special",
+      "damage": 0,
+      "range": 0
+    }
+  ]
+}

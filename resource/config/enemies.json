@@ -1,0 +1,19 @@
+{
+  "enemies": [
+    {
+      "x": 2,
+      "y": 3,
+      "max_hp": 6,
+      "attack_power": 2,
+      "behavior": "melee"
+    },
+    {
+      "x": 5,
+      "y": 2,
+      "max_hp": 4,
+      "attack_power": 3,
+      "behavior": "ranged",
+      "range": 4
+    }
+  ]
+}
